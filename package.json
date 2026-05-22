@@ -1,0 +1,18 @@
+{
+  "name": "@pakakas/cat",
+  "version": "1.0.1",
+  "description": "A cross-platform cat tool optimized for AI Agents",
+  "main": "cat.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pakakas/cat.git"
+  },
+  "license": "ISC",
+  "bin": {
+    "cat": "cat.ts",
+    "read_file": "cat.ts"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  }
+}
