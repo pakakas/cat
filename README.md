@@ -7,7 +7,7 @@ A cross-platform file reading tool designed for AI Agents, providing raw text ou
 Pakakas `cat` follows a smart output philosophy:
 - **Raw Text**: Default behavior for pure file content (most token-efficient for AI).
 - **DoD JSON**: Automatically used if metadata is requested (e.g., line numbers via `-n`) to provide structured data for AI.
-- **Human ASCII**: Use `--h` or `--ascii` to get colored, human-friendly text even when metadata is present.
+- **Human ASCII**: Use `--a` or `--ascii` to get human-friendly text even when metadata is requested.
 
 ## Installation
 
@@ -28,8 +28,13 @@ cat -n <file>
 
 ### Human Mode
 ```bash
-# Outputs colored text with line numbers
-cat -n --h <file>
+# Outputs raw text with line numbers
+cat -n --a <file>
+# or
+cat -n --ascii <file>
+
+# Get colored, human-readable help
+cat --h
 ```
 
 ## License

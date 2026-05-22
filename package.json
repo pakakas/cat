@@ -11,8 +11,5 @@
   "bin": {
     "cat": "cat.ts",
     "read_file": "cat.ts"
-  },
-  "devDependencies": {
-    "bun-types": "latest"
   }
 }
