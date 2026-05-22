@@ -1,6 +1,6 @@
 {
   "name": "@pakakas/cat",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A cross-platform cat tool optimized for AI Agents",
   "main": "cat.ts",
   "repository": {
