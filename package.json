@@ -11,5 +11,10 @@
   "bin": {
     "cat": "cat.ts",
     "read_file": "cat.ts"
+  },
+  "dependencies": {
+    "@pakakas/clai-interactive": "^0.1.0",
+    "@pakakas/markzero": "^1.0.0-dev",
+    "@pakakas/markzero-ascii": "^1.0.0-dev"
   }
 }

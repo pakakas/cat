@@ -1,50 +1,57 @@
 #!/usr/bin/env bun
 import { existsSync } from "node:fs";
-import { encode as encodeMacro } from "../src/pap.ts" with { type: 'macro' };
-import { encode } from "../src/pap.ts";
-import { helpData as commonHelp, mergeHelp } from "../src/help.ts" with { type: 'macro' };
-import { spawnSync } from "bun";
+import { encode } from "@pakakas/markzero/adn";
+import { askHuman } from "@pakakas/clai-interactive";
 
-const args = process.argv.slice(2);
-const helpAsciiAliases = ['-hasci', '--hasci', '--h', '--ha', '--ah', '--a'];
-const isHumanHelp = helpAsciiAliases.some(a => args.includes(a));
-const isHelp = args.includes('--help') || args.includes('-h') || isHumanHelp;
-const isAsciiRequested = args.includes('--ascii') || args.includes('--a') || isHumanHelp;
+export const desc = "Read and output file contents";
 
-const papHelp = encodeMacro(mergeHelp({
+const mzHelp = {
+  usage: "cat [options] [files...]",
   command_desc: "Read and output file contents",
-  flag: ["-n", "--start", "--end"],
+  flag: ["-n", "--start", "--end", "--ascii"],
   desc: [
     "Number all output lines",
     "Line number to start reading from",
-    "Line number to stop reading at"
+    "Line number to stop reading at",
+    "Display formatted output"
   ]
-}));
+};
 
 /**
  * Help function for cat tool.
  */
-export function help(decoder?: (pap: string) => void) {
+export async function help(decoder?: (mzString: any) => void) {
   if (decoder) {
-    decoder(papHelp);
+    decoder(mzHelp);
   } else {
-    process.stdout.write(papHelp + '\n');
+    const isHuman = await askHuman();
+    if (isHuman) {
+      const { toAscii } = await import("@pakakas/markzero-ascii");
+      toAscii(mzHelp);
+    } else {
+      process.stdout.write(encode(mzHelp) + "\n");
+    }
   }
 }
 
-
 // 2. Main Tool Logic
-export async function run(args: string[], decoder?: (pap: string) => void) {
-  const isHumanHelp = args.includes('--h') || args.includes('--ha') || args.includes('-hasci') || args.includes('-hascii') || args.includes('--hasci') || args.includes('--hascii');
+export async function run(args: string[], decoder?: (mzString: any) => void) {
+  const isHelp = args.includes("--help") || args.includes("-h");
+  const isHumanHelp = args.includes("--h") || args.includes("--ha") || args.includes("--ah") || args.includes("-hasci") || args.includes("-hascii") || args.includes("--hasci") || args.includes("--hascii");
 
-  if (args.includes('--help') || args.includes('-h') || isHumanHelp) {
-    help(decoder);
+  if (isHelp || isHumanHelp) {
+    if (isHumanHelp && !decoder) {
+      const { toAscii } = await import("@pakakas/markzero-ascii");
+      toAscii(mzHelp);
+    } else {
+      await help(decoder);
+    }
     return;
   }
 
   const flags = {
     numbers: args.includes("-n"),
-    ascii: args.includes('--ascii') || args.includes('--a') || isHumanHelp,
+    ascii: args.includes("--ascii") || args.includes("--a") || isHumanHelp,
   };
 
   let startLine = 1;
@@ -62,19 +69,19 @@ export async function run(args: string[], decoder?: (pap: string) => void) {
   });
 
   if (files.length === 0 && process.stdin.isTTY) {
-    help(decoder);
+    await help(decoder);
     return;
   }
 
   let exitCode = 0;
-  const allResults: any[] = [];
+  const allResults: { line: number; content: string }[] = [];
   const needsStructure = flags.numbers || (startLine > 1 || endLine !== Infinity);
 
   for (const path of (files.length > 0 ? files : ["-"])) {
     try {
       let content = (path === "-") ? await Bun.stdin.text() : await Bun.file(path).text();
 
-      if (!needsStructure && !flags.ascii && !decoder) {
+      if (!needsStructure && !decoder) {
         process.stdout.write(content);
         if (!content.endsWith("\n") && content !== "") process.stdout.write("\n");
         continue;
@@ -96,18 +103,15 @@ export async function run(args: string[], decoder?: (pap: string) => void) {
   }
 
   if (allResults.length > 0 || needsStructure) {
-    const papData = encode(allResults);
-    if (flags.ascii && decoder) {
-      decoder(papData);
-    } else if (flags.ascii) {
-      // Fallback for standalone: simple text with numbers
+    if (decoder) {
+      decoder(encode(allResults));
+    } else if (process.send) {
+      process.send(allResults, undefined, {}, () => process.exit(exitCode));
+    } else {
       allResults.forEach(r => {
         if (flags.numbers) process.stdout.write(`${r.line.toString().padStart(6, " ")}  ${r.content}\n`);
         else process.stdout.write(`${r.content}\n`);
       });
-    } else {
-      if (process.send) process.send(allResults, undefined, {}, () => process.exit(exitCode));
-      else process.stdout.write(papData + '\n');
     }
   }
 }
