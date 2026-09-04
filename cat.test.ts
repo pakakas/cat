@@ -60,12 +60,4 @@ describe("cat tool", () => {
     expect(out.startsWith("░")).toBe(true);
     expect(out.includes("¶")).toBe(false);
   });
-
-  test("should output ASCII for --h", async () => {
-    const { stdout } = await $`bun ${CAT_SCRIPT} --h`.quiet();
-    const out = stdout.toString();
-    expect(out).toContain("Read and output file contents");
-    expect(out).toContain("Options:");
-    expect(out.includes("¶")).toBe(false);
-  });
 });

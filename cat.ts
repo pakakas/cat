@@ -37,21 +37,15 @@ export async function help(decoder?: (mzString: any) => void) {
 // 2. Main Tool Logic
 export async function run(args: string[], decoder?: (mzString: any) => void) {
   const isHelp = args.includes("--help") || args.includes("-h");
-  const isHumanHelp = args.includes("--h") || args.includes("--ha") || args.includes("--ah") || args.includes("-hasci") || args.includes("-hascii") || args.includes("--hasci") || args.includes("--hascii");
 
-  if (isHelp || isHumanHelp) {
-    if (isHumanHelp && !decoder) {
-      const { toAscii } = await import("@pakakas/markzero-ascii");
-      toAscii(mzHelp);
-    } else {
-      await help(decoder);
-    }
+  if (isHelp) {
+    await help(decoder);
     return;
   }
 
   const flags = {
     numbers: args.includes("-n"),
-    ascii: args.includes("--ascii") || args.includes("--a") || isHumanHelp,
+    ascii: args.includes("--ascii") || args.includes("--a"),
   };
 
   let startLine = 1;
